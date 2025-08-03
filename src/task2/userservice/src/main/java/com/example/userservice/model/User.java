@@ -1,76 +1,34 @@
 package com.example.userservice.model;
 
 import jakarta.persistence.*;
+import lombok.*;
+import jakarta.validation.constraints.*;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // автоинкремент
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 100)
     private String email;
 
     @Column(nullable = false)
+    @Min(value = 0, message = "Возраст не может быть отрицательным")
+    @Max(value = 150, message = "Возраст не может быть больше 150")
     private int age;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now(); // дата создания
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    public User() {}
-
-    public User(String name, String email, int age, LocalDateTime createdAt) {
-        this.name = name;
-        this.email = email;
-        this.age = age;
-        this.createdAt = createdAt;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Integer getAge() {
-        return age;
-    }
-
-    public void setAge(Integer age) {
-        this.age = age;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    @Override
-    public String toString() {
-        return "User{id=%d, name='%s', email='%s', age=%d, createdAt=%s}"
-                .formatted(id, name, email, age, createdAt);
-    }
 }

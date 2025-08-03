@@ -18,6 +18,8 @@
         <property name="hibernate.show_sql">true</property>
         <property name="hibernate.format_sql">true</property>
 
+        <property name="javax.persistence.validation.mode">AUTO</property>
+
         <mapping class="com.example.userservice.model.User"/>
     </session-factory>
 </hibernate-configuration>
