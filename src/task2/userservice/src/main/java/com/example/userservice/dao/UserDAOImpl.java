@@ -1,5 +1,6 @@
 package com.example.userservice.dao;
 
+import com.example.userservice.exception.*;
 import com.example.userservice.model.User;
 import com.example.userservice.util.HibernateUtil;
 import com.example.userservice.util.UserValidator;
@@ -14,12 +15,28 @@ import java.util.Optional;
 @Slf4j
 public class UserDAOImpl implements UserDAO {
 
+    public boolean existsByEmail(String email) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Long count = session.createQuery(
+                            "SELECT COUNT(u) FROM User u WHERE u.email = :email", Long.class)
+                    .setParameter("email", email)
+                    .getSingleResult();
+            return count > 0;
+        } catch (Exception e) {
+            log.error("Ошибка при проверке email: {}", email, e);
+            throw new DatabaseOperationException("проверки email", e);
+        }
+    }
+
     @Override
     public void save(User user) {
-        // Автоматическая валидация перед сохранением
         try {
             UserValidator.validateUser(user);
-        } catch (IllegalArgumentException e) {
+            // Проверка на уникальность email
+            if (existsByEmail(user.getEmail())) {
+                throw new UserAlreadyExistsException(user.getEmail());
+            }
+        } catch (UserValidationException | UserAlreadyExistsException e) {
             log.error("Ошибка валидации пользователя: {}", e.getMessage());
             throw e;
         }
@@ -33,7 +50,7 @@ public class UserDAOImpl implements UserDAO {
         } catch (Exception e) {
             handleTransactionRollback(tx);
             log.error("Ошибка при сохранении пользователя: {}", user, e);
-            throw new RuntimeException("Ошибка при сохранении пользователя: " + e.getMessage(), e);
+            throw new DatabaseOperationException("Ошибка при сохранении пользователя: " + e.getMessage(), e);
         }
     }
 
@@ -52,7 +69,7 @@ public class UserDAOImpl implements UserDAO {
             return Optional.ofNullable(user);
         } catch (Exception e) {
             log.error("Ошибка при поиске пользователя по ID={}", id, e);
-            return Optional.empty();
+            throw new DatabaseOperationException("поиска пользователя", e);
         }
     }
 
@@ -65,7 +82,7 @@ public class UserDAOImpl implements UserDAO {
             return users;
         } catch (Exception e) {
             log.error("Ошибка при получении списка пользователей", e);
-            return List.of();
+            throw new DatabaseOperationException("получения списка пользователей" ,e);
         }
     }
 
@@ -81,7 +98,7 @@ public class UserDAOImpl implements UserDAO {
         } catch (Exception e) {
             handleTransactionRollback(tx);
             log.error("Ошибка при обновлении пользователя: ID={}", user.getId(), e);
-            throw new RuntimeException("Ошибка при обновлении пользователя", e);
+            throw new DatabaseOperationException("Обновления пользователя", e);
         }
     }
 
@@ -97,14 +114,14 @@ public class UserDAOImpl implements UserDAO {
         } catch (Exception e) {
             handleTransactionRollback(tx);
             log.error("Ошибка при удалении пользователя: ID={}", user.getId(), e);
-            throw new RuntimeException("Ошибка при удалении пользователя", e);
+            throw new DatabaseOperationException("Удаления пользователя", e);
         }
     }
 
     private void validateUser(User user, String operation) {
         if (user == null) {
             log.error("Попытка {} null-пользователя", operation);
-            throw new IllegalArgumentException("User cannot be null for operation: " + operation);
+            throw new UserValidationException("Пользователь не может быть null для операции: " + operation);
         }
     }
 
@@ -112,7 +129,7 @@ public class UserDAOImpl implements UserDAO {
         validateUser(user, operation);
         if (user.getId() == null) {
             log.error("Попытка {} пользователя без ID", operation);
-            throw new IllegalArgumentException("User ID cannot be null for operation: " + operation);
+            throw new UserValidationException("ID пользователя не может быть null для операции: " + operation);
         }
     }
 

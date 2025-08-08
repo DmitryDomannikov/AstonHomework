@@ -1,5 +1,6 @@
 package com.example.userservice.util;
 
+import com.example.userservice.exception.UserValidationException;
 import com.example.userservice.model.User;
 import jakarta.validation.*;
 
@@ -17,7 +18,7 @@ public class UserValidator {
             String errorMessage = violations.stream()
                     .map(ConstraintViolation::getMessage)
                     .collect(Collectors.joining(", "));
-            throw new IllegalArgumentException(errorMessage);
+            throw new UserValidationException(errorMessage);
         }
     }
 }

@@ -25,10 +25,24 @@ public class User {
 
     @Column(nullable = false)
     @Min(value = 0, message = "Возраст не может быть отрицательным")
-    @Max(value = 150, message = "Возраст не может быть больше 150")
+    @Max(value = 100, message = "Возраст не может быть больше 100")
     private int age;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
 }
