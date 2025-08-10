@@ -10,5 +10,6 @@ public interface UserDAO {
     List<User> findAll();
     void update(User user);
     void delete(User user);
+    boolean existsByEmail(String email);
 }
 

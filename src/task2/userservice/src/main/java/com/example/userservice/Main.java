@@ -60,7 +60,7 @@ public class Main {
                 """);
     }
 
-    private static void createUser() {
+    static void createUser() {
         try {
             System.out.print("Имя: ");
             String name = scanner.nextLine().trim();
@@ -103,7 +103,7 @@ public class Main {
         }
     }
 
-    private static void listUsers() {
+    static void listUsers() {
         try {
             List<User> users = userDAO.findAll();
             if (users.isEmpty()) {
@@ -120,7 +120,7 @@ public class Main {
         }
     }
 
-    private static void findUser() {
+    static void findUser() {
         try {
             System.out.print("Введите ID пользователя: ");
             Long id = Long.parseLong(scanner.nextLine());
@@ -144,7 +144,7 @@ public class Main {
     }
 
 
-    private static void updateUser() {
+    static void updateUser() {
         try {
             System.out.print("Введите ID пользователя: ");
             Long id = Long.parseLong(scanner.nextLine());
@@ -194,7 +194,7 @@ public class Main {
         }
     }
 
-    private static void deleteUser() {
+    static void deleteUser() {
         try {
             System.out.print("Введите ID пользователя для удаления: ");
             Long id = Long.parseLong(scanner.nextLine());

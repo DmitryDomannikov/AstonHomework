@@ -15,6 +15,7 @@ import java.util.Optional;
 @Slf4j
 public class UserDAOImpl implements UserDAO {
 
+    @Override
     public boolean existsByEmail(String email) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Long count = session.createQuery(
