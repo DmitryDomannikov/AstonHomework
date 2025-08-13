@@ -40,10 +40,10 @@ class UserDAOImplIT {
 
         @Container
         private static final PostgreSQLContainer<?> POSTGRES_CONTAINER =
-                new PostgreSQLContainer<>("postgres:16")
-                        .withDatabaseName("testdb")
-                        .withUsername("testuser")
-                        .withPassword("testpass");
+                new PostgreSQLContainer<>(POSTGRES_IMAGE)
+                        .withDatabaseName(DATABASE_NAME )
+                        .withUsername(DATABASE_USERNAME)
+                        .withPassword(DATABASE_PASSWORD);
 
         private static SessionFactory sessionFactory;
         private UserDAO userDAO;
@@ -95,7 +95,6 @@ class UserDAOImplIT {
             // Подготовка данных
             User expectedUser = persistTestUser(USER1_NAME, USER1_EMAIL, USER1_AGE);
 
-            // Тестируем только метод findById
             Optional<User> found = userDAO.findById(expectedUser.getId());
 
             // Проверки
