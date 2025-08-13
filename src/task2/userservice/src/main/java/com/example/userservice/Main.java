@@ -13,12 +13,22 @@ import java.util.Optional;
 import java.util.Scanner;
 
 @Slf4j
-@RequiredArgsConstructor
 public class Main {
-    private static final Scanner scanner = new Scanner(System.in);
-    private static final UserDAO userDAO = new UserDAOImpl();
+    private final Scanner scanner;
+    private final UserDAO userDAO;
 
+    public Main() {
+        this(new Scanner(System.in), new UserDAOImpl());
+    }
+
+    public Main(Scanner scanner, UserDAO userDAO) {
+        this.scanner = scanner;
+        this.userDAO = userDAO;
+    }
     public static void main(String[] args) {
+        new Main().run();
+    }
+    public void run() {
         log.info("Запуск приложения");
         boolean running = true;
 
@@ -45,7 +55,7 @@ public class Main {
         System.out.println("Программа завершена.");
     }
 
-    private static void showMenu() {
+    private void showMenu() {
         System.out.println("""
                 
                 ========== Меню ==========
@@ -60,7 +70,7 @@ public class Main {
                 """);
     }
 
-    static void createUser() {
+     void createUser() {
         try {
             System.out.print("Имя: ");
             String name = scanner.nextLine().trim();
@@ -103,7 +113,7 @@ public class Main {
         }
     }
 
-    static void listUsers() {
+     void listUsers() {
         try {
             List<User> users = userDAO.findAll();
             if (users.isEmpty()) {
@@ -120,7 +130,7 @@ public class Main {
         }
     }
 
-    static void findUser() {
+     void findUser() {
         try {
             System.out.print("Введите ID пользователя: ");
             Long id = Long.parseLong(scanner.nextLine());
@@ -144,7 +154,7 @@ public class Main {
     }
 
 
-    static void updateUser() {
+     void updateUser() {
         try {
             System.out.print("Введите ID пользователя: ");
             Long id = Long.parseLong(scanner.nextLine());
@@ -194,7 +204,7 @@ public class Main {
         }
     }
 
-    static void deleteUser() {
+     void deleteUser() {
         try {
             System.out.print("Введите ID пользователя для удаления: ");
             Long id = Long.parseLong(scanner.nextLine());

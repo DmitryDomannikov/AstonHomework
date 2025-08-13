@@ -3,6 +3,7 @@ package com.example.userservice.dao;
 import com.example.userservice.model.User;
 import com.example.userservice.util.HibernateUtil;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,139 +19,172 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 class UserDAOImplIT {
+    // Константы для контейнера
+    private static final String POSTGRES_IMAGE = "postgres:16";
+    private static final String DATABASE_NAME = "testdb";
+    private static final String DATABASE_USERNAME = "testuser";
+    private static final String DATABASE_PASSWORD = "testpass";
 
-    @Container
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
+    // Константы для тестовых данных
+    private static final String USER1_NAME = "John Johnson";
+    private static final String USER1_EMAIL = "john@example.com";
+    private static final int USER1_AGE = 25;
 
-    private static UserDAO userDAO;
+    private static final String USER2_NAME = "Alice";
+    private static final String USER2_EMAIL = "alice@example.com";
+    private static final int USER2_AGE = 30;
 
-    @BeforeAll
-    static void setup() {
-        assertTrue(postgres.isRunning(), "PostgreSQL container should be running");
-        System.setProperty("hibernate.connection.url", postgres.getJdbcUrl());
-        System.setProperty("hibernate.connection.username", postgres.getUsername());
-        System.setProperty("hibernate.connection.password", postgres.getPassword());
+    private static final String UPDATED_NAME = "Updated Name";
 
-        userDAO = new UserDAOImpl();
-        // Проверяем, что можем установить соединение
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            assertTrue(session.isConnected(), "Should be connected to database");
+    private static final long NON_EXISTENT_ID = 999L;
+
+        @Container
+        private static final PostgreSQLContainer<?> POSTGRES_CONTAINER =
+                new PostgreSQLContainer<>("postgres:16")
+                        .withDatabaseName("testdb")
+                        .withUsername("testuser")
+                        .withPassword("testpass");
+
+        private static SessionFactory sessionFactory;
+        private UserDAO userDAO;
+
+        @BeforeAll
+        static void setup() {
+            assertTrue(POSTGRES_CONTAINER.isRunning(), "PostgreSQL container should be running");
+            System.setProperty("hibernate.connection.url", POSTGRES_CONTAINER.getJdbcUrl());
+            System.setProperty("hibernate.connection.username", POSTGRES_CONTAINER.getUsername());
+            System.setProperty("hibernate.connection.password", POSTGRES_CONTAINER.getPassword());
+
+            sessionFactory = HibernateUtil.getSessionFactory();
+
+            try (Session session = sessionFactory.openSession()) {
+                assertTrue(session.isConnected(), "Should be connected to database");
+            }
+        }
+
+        @BeforeEach
+        void setUp() {
+            userDAO = new UserDAOImpl();
+            clearDatabase();
+        }
+
+        @AfterAll
+        static void cleanup() {
+            HibernateUtil.shutdown();
+        }
+
+        private void clearDatabase() {
+            sessionFactory.inTransaction(session -> {
+                session.createNativeQuery("TRUNCATE TABLE users RESTART IDENTITY").executeUpdate();
+            });
+        }
+
+        private User persistTestUser(String name, String email, int age) {
+            return sessionFactory.fromTransaction(session -> {
+                User user = new User();
+                user.setName(name);
+                user.setEmail(email);
+                user.setAge(age);
+                session.persist(user);
+                return user;
+            });
+        }
+
+        @Test
+        void findById_shouldReturnUser_whenUserExists() {
+            // Подготовка данных
+            User expectedUser = persistTestUser(USER1_NAME, USER1_EMAIL, USER1_AGE);
+
+            // Тестируем только метод findById
+            Optional<User> found = userDAO.findById(expectedUser.getId());
+
+            // Проверки
+            assertTrue(found.isPresent());
+            assertEquals(expectedUser.getName(), found.get().getName());
+            assertEquals(expectedUser.getEmail(), found.get().getEmail());
+            assertEquals(expectedUser.getAge(), found.get().getAge());
+        }
+
+        @Test
+        void update_shouldModifyExistingUser() {
+            // Подготовка данных
+            User originalUser = persistTestUser(USER1_NAME, USER1_EMAIL, USER1_AGE);
+
+            originalUser.setName(UPDATED_NAME);
+
+            userDAO.update(originalUser);
+
+            User updatedUser = sessionFactory.fromTransaction(session ->
+                    session.find(User.class, originalUser.getId())
+            );
+
+            assertEquals(UPDATED_NAME, updatedUser.getName());
+            assertEquals(USER1_EMAIL, updatedUser.getEmail());
+            assertEquals(USER1_AGE, updatedUser.getAge());
+        }
+
+        @Test
+        void save_shouldCreateNewUser() {
+            // Создаем новый объект
+            User newUser = new User();
+            newUser.setName(USER1_NAME);
+            newUser.setEmail(USER1_EMAIL);
+            newUser.setAge(USER1_AGE);
+
+            userDAO.save(newUser);
+
+            User savedUser = sessionFactory.fromTransaction(session ->
+                    session.find(User.class, newUser.getId())
+            );
+
+            assertNotNull(savedUser);
+            assertEquals(USER1_NAME, savedUser.getName());
+            assertEquals(USER1_EMAIL, savedUser.getEmail());
+            assertEquals(USER1_AGE, savedUser.getAge());
+        }
+
+        @Test
+        void findAll_shouldReturnAllUsers() {
+            // Подготовка данных
+            User user1 = persistTestUser(USER1_NAME, USER1_EMAIL, USER1_AGE);
+            User user2 = persistTestUser(USER2_NAME, USER2_EMAIL, USER2_AGE);
+
+            List<User> users = userDAO.findAll();
+
+            // Проверка
+            assertEquals(2, users.size());
+            assertTrue(users.stream().anyMatch(u -> u.getId().equals(user1.getId())));
+            assertTrue(users.stream().anyMatch(u -> u.getId().equals(user2.getId())));
+        }
+
+        @Test
+        void delete_shouldRemoveUser() {
+            User userToDelete = persistTestUser(USER1_NAME, USER1_EMAIL, USER1_AGE);
+
+            userDAO.delete(userToDelete);
+
+            // Проверяем чтение из БД
+            Optional<User> deletedUser = sessionFactory.fromTransaction(session ->
+                    Optional.ofNullable(session.find(User.class, userToDelete.getId()))
+            );
+
+            assertFalse(deletedUser.isPresent());
+        }
+
+        @Test
+        void existsByEmail_shouldReturnCorrectResult() {
+            // Подготовка данных
+            persistTestUser(USER1_NAME, USER1_EMAIL, USER1_AGE);
+
+            assertTrue(userDAO.existsByEmail(USER1_EMAIL));
+            assertFalse(userDAO.existsByEmail("nonexistent@email.com"));
+        }
+
+        @Test
+        void findById_shouldReturnEmptyOptional_whenUserNotExists() {
+            Optional<User> result = userDAO.findById(NON_EXISTENT_ID);
+
+            // Проверка
+            assertFalse(result.isPresent());
         }
     }
-
-    @BeforeEach
-    void clearDatabase() {
-        HibernateUtil.getSessionFactory().inTransaction(session -> {
-            session.createMutationQuery("DELETE FROM User").executeUpdate();
-        });
-    }
-
-    @AfterAll
-    static void cleanup() {
-        HibernateUtil.shutdown();
-    }
-
-    @Test
-    void testSaveAndFindUser() {
-        // Создаем пользователя
-        User user = new User();
-        user.setName("John Doe");
-        user.setEmail("john@example.com");
-        user.setAge(25);
-
-        // Сохраняем
-        userDAO.save(user);
-
-        // Ищем по ID
-        Optional<User> foundUser = userDAO.findById(user.getId());
-
-        // Проверяем
-        assertTrue(foundUser.isPresent());
-        assertEquals("John Doe", foundUser.get().getName());
-        assertEquals("john@example.com", foundUser.get().getEmail());
-        assertEquals(25, foundUser.get().getAge());
-    }
-
-    @Test
-    void testFindAllUsers() {
-        // Создаем двух пользователей
-        User user1 = new User();
-        user1.setName("Alice");
-        user1.setEmail("alice@example.com");
-        user1.setAge(30);
-
-        User user2 = new User();
-        user2.setName("Bob");
-        user2.setEmail("bob@example.com");
-        user2.setAge(35);
-
-        // Сохраняем
-        userDAO.save(user1);
-        userDAO.save(user2);
-
-        // Получаем всех
-        List<User> users = userDAO.findAll();
-
-        // Проверяем
-        assertEquals(2, users.size());
-    }
-
-    @Test
-    void testUpdateUser() {
-        // Создаем и сохраняем пользователя
-        User user = new User();
-        user.setName("Original Name");
-        user.setEmail("original@example.com");
-        user.setAge(40);
-        userDAO.save(user);
-
-        // Обновляем
-        user.setName("Updated Name");
-        userDAO.update(user);
-
-        // Проверяем
-        Optional<User> updatedUser = userDAO.findById(user.getId());
-        assertTrue(updatedUser.isPresent());
-        assertEquals("Updated Name", updatedUser.get().getName());
-    }
-
-    @Test
-    void testDeleteUser() {
-        // Создаем и сохраняем пользователя
-        User user = new User();
-        user.setName("To Delete");
-        user.setEmail("delete@example.com");
-        user.setAge(45);
-        userDAO.save(user);
-
-        // Удаляем
-        userDAO.delete(user);
-
-        // Проверяем
-        Optional<User> deletedUser = userDAO.findById(user.getId());
-        assertFalse(deletedUser.isPresent());
-    }
-
-    @Test
-    void testFindNonExistentUser() {
-        Optional<User> user = userDAO.findById(999L);
-        assertFalse(user.isPresent());
-    }
-
-    @Test
-    void testEmailExists() {
-        // Создаем пользователя
-        User user = new User();
-        user.setName("Test");
-        user.setEmail("test@example.com");
-        user.setAge(20);
-        userDAO.save(user);
-
-        // Проверяем
-        assertTrue(userDAO.existsByEmail("test@example.com"));
-        assertFalse(userDAO.existsByEmail("nonexistent@example.com"));
-    }
-}
