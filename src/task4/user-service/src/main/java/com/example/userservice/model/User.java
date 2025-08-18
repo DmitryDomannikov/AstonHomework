@@ -1,13 +1,12 @@
 package com.example.userservice.model;
 
 import jakarta.persistence.*;
-import lombok.*;
 import jakarta.validation.constraints.*;
-
+import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = @Index(columnList = "email"))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,16 +16,21 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
+    @Size(max = 50)
     @Column(nullable = false, length = 50)
     private String name;
 
+    @Email
+    @NotBlank
     @Column(unique = true, nullable = false, length = 100)
     private String email;
 
+    @NotNull
+    @Min(0)
+    @Max(100)
     @Column(nullable = false)
-    @Min(value = 0, message = "Возраст не может быть отрицательным")
-    @Max(value = 100, message = "Возраст не может быть больше 100")
-    private int age;
+    private Integer age;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -44,5 +48,4 @@ public class User {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-
 }

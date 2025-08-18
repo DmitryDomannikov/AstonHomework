@@ -1,0 +1,52 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/testdb
+    username: ${POSTGRES_USER:testuser}
+    password: ${POSTGRES_PASSWORD:testpass}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      leak-detection-threshold: 2000 # Детектор утечек соединений (мс)
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true # Форматирование SQL в логах
+        jdbc.batch_size: 20
+        generate_statistics: true # Для анализа производительности
+
+  cache:
+    type: none
+
+  flyway:
+    enabled: false
+
+  main:
+    banner-mode: "off" # Отключаем баннер Spring Boot
+
+server:
+  port: 0
+
+# Настройки логирования
+logging:
+  level:
+    org:
+      springframework:
+        context: DEBUG
+        orm:
+          jpa: DEBUG # Логирование JPA
+        transaction: DEBUG # Логирование транзакций
+      hibernate:
+        SQL: DEBUG # Детальные SQL-логи
+        type.descriptor.sql.BasicBinder: TRACE # Параметры SQL-запросов
+    mapstruct: TRACE # Логирование MapStruct
+
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" # Формат логов
+
+# Настройки Testcontainers (если используется)
+testcontainers:
+  reuse: true # Включение reuse-режима для контейнеров
