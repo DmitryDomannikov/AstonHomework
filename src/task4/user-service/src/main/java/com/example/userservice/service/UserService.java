@@ -1,5 +1,6 @@
 package com.example.userservice.service;
 
+import com.example.userservice.dto.UserEvent;
 import com.example.userservice.dto.UserRequest;
 import com.example.userservice.dto.UserResponse;
 import com.example.userservice.exception.*;
@@ -12,6 +13,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final KafkaTemplate<String, UserEvent> kafkaTemplate;
 
     @Transactional
     @CacheEvict(value = "users", allEntries = true)
@@ -34,6 +37,8 @@ public class UserService {
         User user = userMapper.toEntity(request);
         user = userRepository.save(user);
         log.info("Created user ID: {}", user.getId());
+        kafkaTemplate.send("user-created",
+                new UserEvent("USER_CREATED", user.getEmail(), user.getId()));
         return userMapper.toResponse(user);
     }
 
@@ -76,7 +81,12 @@ public class UserService {
             throw new UserNotFoundException(id);
         }
         userRepository.deleteById(id);
-        log.info("Deleted user ID: {}", id);
+        User user = userRepository.findById(id).orElse(null);
+        if (user != null) {
+            log.info("Deleted user ID: {}", id);
+            kafkaTemplate.send("user-deleted",
+                    new UserEvent("USER_DELETED", user.getEmail(), user.getId()));
+        }
     }
 
     @Transactional(readOnly = true)

@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -134,6 +135,7 @@ class UserControllerTest {
         doNothing().when(userService).deleteUser(ID);
 
         mockMvc.perform(delete(URL + "/{id}", ID))
+                .andDo(print())
                 .andExpect(status().isNoContent());
     }
 
