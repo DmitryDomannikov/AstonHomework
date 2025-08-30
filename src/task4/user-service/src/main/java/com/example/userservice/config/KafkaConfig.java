@@ -1,21 +1,28 @@
 package com.example.userservice.config;
 
-import com.example.userservice.dto.UserEvent;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
+@EnableKafka
 public class KafkaConfig {
-    @Bean
-    public ProducerFactory<String, UserEvent> producerFactory() {
-        // конфигурация producer
 
+    @Bean
+    public NewTopic userCreatedTopic() {
+        return TopicBuilder.name("user-created")
+                .partitions(3)
+                .replicas(1)
+                .build();
     }
 
     @Bean
-    public KafkaTemplate<String, UserEvent> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+    public NewTopic userDeletedTopic() {
+        return TopicBuilder.name("user-deleted")
+                .partitions(3)
+                .replicas(1)
+                .build();
     }
 }

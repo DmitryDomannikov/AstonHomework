@@ -1,0 +1,39 @@
+server:
+  port: 8081  # Хороший выбор, не конфликтует с 8088
+
+spring:
+  # 📧 Настройки Email - ИСПРАВЛЕНО для mail.ru
+  mail:
+    host: smtp.mail.ru  # Изменено с gmail.com на mail.ru
+    port: 587
+    username: ${EMAIL_USERNAME:dmnk95@mail.ru}
+    password: ${EMAIL_PASSWORD:your-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+        debug: true  # Добавлено для отладки
+
+  # 🚀 Настройки Kafka - ИСПРАВЛЕНО
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: email-notification-group  # Более специфичное имя
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.example.userservice.dto"  # ИСПРАВЛЕНО
+
+  # 📊 Дополнительные настройки
+  application:
+    name: notification-service
+
+# 📝 Логирование
+logging:
+  level:
+    com.example.notificationservice: DEBUG
+    org.springframework.kafka: DEBUG
+    org.springframework.mail: DEBUG  # Добавлено для отладки email
