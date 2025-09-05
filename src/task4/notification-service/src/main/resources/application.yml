@@ -2,6 +2,13 @@ server:
   port: 8081
 
 spring:
+  doc:
+    api-docs:
+      path: /v3/api-docs
+    swagger-ui:
+      path: /swagger-ui.html
+      tags-sorter: alpha
+      operations-sorter: alpha
   # 📧 Настройки Email
   mail:
     host: smtp.mail.ru
