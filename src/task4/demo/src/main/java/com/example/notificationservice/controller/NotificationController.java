@@ -1,5 +1,7 @@
-package com.example.notificationservice;
+package com.example.notificationservice.controller;
 
+import com.example.notificationservice.dto.EmailRequest;
+import com.example.notificationservice.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

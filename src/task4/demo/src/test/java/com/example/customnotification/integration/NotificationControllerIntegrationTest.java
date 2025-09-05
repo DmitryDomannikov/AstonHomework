@@ -1,6 +1,6 @@
 package com.example.customnotification.integration;
 
-import com.example.notificationservice.EmailRequest;
+import com.example.notificationservice.dto.EmailRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

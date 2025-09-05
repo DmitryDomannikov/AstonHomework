@@ -1,6 +1,6 @@
 package com.example.customnotification.integration;
 
-import com.example.notificationservice.UserEvent;
+import com.example.notificationservice.dto.UserEvent;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,7 +20,6 @@ import org.testcontainers.utility.DockerImageName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
@@ -86,7 +85,6 @@ class NotificationServiceIntegrationTest {
 
         // Then - проверяем что email был бы отправлен
         verify(mailSender).send(any(SimpleMailMessage.class));
-        assertTrue(true);
     }
 
     @Test
@@ -100,6 +98,5 @@ class NotificationServiceIntegrationTest {
         // Then - ждем и проверяем
         Thread.sleep(5000);
         verify(mailSender).send(any(SimpleMailMessage.class));
-        assertTrue(true);
     }
 }

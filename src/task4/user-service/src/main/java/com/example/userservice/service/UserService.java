@@ -1,8 +1,9 @@
 package com.example.userservice.service;
 
-import com.example.userservice.dto.UserEvent;
+import com.example.userservice.config.KafkaConfig;
 import com.example.userservice.dto.UserRequest;
 import com.example.userservice.dto.UserResponse;
+import com.example.userservice.events.UserEventType;
 import com.example.userservice.exception.*;
 import com.example.userservice.mapper.UserMapper;
 import com.example.userservice.model.User;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -26,7 +28,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final KafkaTemplate<String, UserEvent> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate; // Изменили на Object
 
     @Transactional
     @CacheEvict(value = "users", allEntries = true)
@@ -34,11 +36,18 @@ public class UserService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserAlreadyExistsException(request.getEmail());
         }
+
         User user = userMapper.toEntity(request);
         user = userRepository.save(user);
+
         log.info("Created user ID: {}", user.getId());
-        kafkaTemplate.send("user-created",
-                new UserEvent("USER_CREATED", user.getEmail(), user.getId()));
+
+        // Отправка события с использованием констант и enum
+        kafkaTemplate.send(
+                KafkaConfig.USER_CREATED_TOPIC, // Используем константу из конфига
+                createUserEvent(user, UserEventType.USER_CREATED) // Используем enum
+        );
+
         return userMapper.toResponse(user);
     }
 
@@ -70,6 +79,7 @@ public class UserService {
 
         userMapper.updateFromRequest(request, user);
         user = userRepository.save(user);
+
         log.info("Updated user ID: {}", id);
         return userMapper.toResponse(user);
     }
@@ -77,16 +87,17 @@ public class UserService {
     @Transactional
     @CacheEvict(value = "users", allEntries = true)
     public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new UserNotFoundException(id);
-        }
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+
         userRepository.deleteById(id);
-        User user = userRepository.findById(id).orElse(null);
-        if (user != null) {
-            log.info("Deleted user ID: {}", id);
-            kafkaTemplate.send("user-deleted",
-                    new UserEvent("USER_DELETED", user.getEmail(), user.getId()));
-        }
+        log.info("Deleted user ID: {}", id);
+
+        // Отправка события удаления
+        kafkaTemplate.send(
+                KafkaConfig.USER_DELETED_TOPIC, // Используем константу из конфига
+                createUserEvent(user, UserEventType.USER_DELETED) // Используем enum
+        );
     }
 
     @Transactional(readOnly = true)
@@ -100,5 +111,16 @@ public class UserService {
     public Page<UserResponse> findUsersByAgeRange(int minAge, int maxAge, Pageable pageable) {
         return userRepository.findByAgeBetween(minAge, maxAge, pageable)
                 .map(userMapper::toResponse);
+    }
+
+    // Приватный метод для создания события
+    private Map<String, Object> createUserEvent(User user, UserEventType eventType) {
+        return Map.of(
+                "eventType", eventType.getEventType(),
+                "userId", user.getId(),
+                "userEmail", user.getEmail(),
+                "userName", user.getName(),
+                "timestamp", java.time.Instant.now()
+        );
     }
 }

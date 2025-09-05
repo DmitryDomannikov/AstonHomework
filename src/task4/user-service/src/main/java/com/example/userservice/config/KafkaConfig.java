@@ -10,9 +10,14 @@ import org.springframework.kafka.config.TopicBuilder;
 @EnableKafka
 public class KafkaConfig {
 
+    // Константы для использования в сервисах
+    public static final String USER_CREATED_TOPIC = "user-created";
+    public static final String USER_DELETED_TOPIC = "user-deleted";
+    public static final String USER_UPDATED_TOPIC = "user-updated";
+
     @Bean
     public NewTopic userCreatedTopic() {
-        return TopicBuilder.name("user-created")
+        return TopicBuilder.name(USER_CREATED_TOPIC)
                 .partitions(3)
                 .replicas(1)
                 .build();
@@ -20,7 +25,15 @@ public class KafkaConfig {
 
     @Bean
     public NewTopic userDeletedTopic() {
-        return TopicBuilder.name("user-deleted")
+        return TopicBuilder.name(USER_DELETED_TOPIC)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic userUpdatedTopic() {
+        return TopicBuilder.name(USER_UPDATED_TOPIC)
                 .partitions(3)
                 .replicas(1)
                 .build();

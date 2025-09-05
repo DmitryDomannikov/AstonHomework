@@ -1,31 +1,43 @@
 server:
-  port: 8081  # Хороший выбор, не конфликтует с 8088
+  port: 8081
 
 spring:
-  # 📧 Настройки Email - ИСПРАВЛЕНО для mail.ru
+  # 📧 Настройки Email
   mail:
-    host: smtp.mail.ru  # Изменено с gmail.com на mail.ru
+    host: smtp.mail.ru
     port: 587
     username: ${EMAIL_USERNAME:dmnk95@mail.ru}
     password: ${EMAIL_PASSWORD:your-app-password}
+    protocol: smtp
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
-        debug: true  # Добавлено для отладки
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+        debug: true
 
-  # 🚀 Настройки Kafka - ИСПРАВЛЕНО
+  # 🚀 Настройки Kafka
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
-      group-id: email-notification-group  # Более специфичное имя
-      auto-offset-reset: earliest
+      group-id: notification-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "com.example.userservice.dto"  # ИСПРАВЛЕНО
+        spring:
+          json:
+            trusted:
+              packages: "com.example.notificationservice.dto"
+        auto:
+          offset:
+            reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
   # 📊 Дополнительные настройки
   application:
@@ -36,4 +48,4 @@ logging:
   level:
     com.example.notificationservice: DEBUG
     org.springframework.kafka: DEBUG
-    org.springframework.mail: DEBUG  # Добавлено для отладки email
+    org.springframework.mail: DEBUG

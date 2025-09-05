@@ -30,15 +30,9 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    consumer:
-      group-id: notification-group
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring:
-          json:
-            trusted:
-              packages: "com.example.userservice.dto"
+        delivery.timeout.ms: 3000
+        retries: 3
   mail:
     host: smtp.gmail.com
     port: 587
@@ -68,11 +62,13 @@ logging:
   level:
     org.springframework.security: DEBUG
     com.example.userservice: DEBUG
+    org.springframework.kafka: DEBUG  # отладки Kafka
 
 server:
   port: 8088
   servlet:
     context-path: /api
+
 management:
   server:
     port: 8089
