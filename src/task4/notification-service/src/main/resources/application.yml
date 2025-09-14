@@ -2,34 +2,12 @@ server:
   port: 8081
 
 spring:
-  doc:
-    api-docs:
-      path: /v3/api-docs
-    swagger-ui:
-      path: /swagger-ui.html
-      tags-sorter: alpha
-      operations-sorter: alpha
-  # 📧 Настройки Email
-  mail:
-    host: smtp.mail.ru
-    port: 587
-    username: ${EMAIL_USERNAME:dmnk95@mail.ru}
-    password: ${EMAIL_PASSWORD:your-app-password}
-    protocol: smtp
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
-        debug: true
+  application:
+    name: notification-service
 
-  # 🚀 Настройки Kafka
+  # Kafka
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: localhost:9092        # в Docker: kafka:9092
     consumer:
       group-id: notification-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -46,11 +24,32 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
-  # 📊 Дополнительные настройки
-  application:
-    name: notification-service
+  MailHog:
+    host: smtp.mail.ru
+    port: 587
+    username: ${EMAIL_USERNAME:dmnk95@mail.ru}
+    password: ${EMAIL_PASSWORD:your-app-password}
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+        debug: true
 
-# 📝 Логирование
+# Springdoc
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+
 logging:
   level:
     com.example.notificationservice: DEBUG

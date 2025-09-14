@@ -5,7 +5,7 @@ server:
 
 spring:
   application:
-    name: user-service
+    name: user-service   # <<< важно: имя совпадает с файлом и с самим сервисом
   datasource:
     url: jdbc:postgresql://localhost:5432/hibernate_demo_db
     username: postgres
@@ -17,6 +17,7 @@ spring:
       minimum-idle: 2
       leak-detection-threshold: 3000
       connection-timeout: 5000
+
   jpa:
     open-in-view: false
     hibernate:
@@ -28,10 +29,12 @@ spring:
         jdbc:
           lob:
             non_contextual_creation: true
+
   cache:
     type: caffeine
     caffeine:
       spec: maximumSize=500,expireAfterWrite=5m
+
   kafka:
     bootstrap-servers: localhost:9092
     producer:
@@ -40,6 +43,7 @@ spring:
       properties:
         delivery.timeout.ms: 3000
         retries: 3
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -51,6 +55,7 @@ spring:
           auth: true
           starttls:
             enable: true
+
   doc:
     api-docs:
       path: /v3/api-docs
@@ -59,28 +64,18 @@ spring:
       tags-sorter: alpha
       operations-sorter: alpha
       url: http://localhost:8089/v3/api-docs
+
   security:
     user:
       name: admin
       password: ${ADMIN_PASSWORD:admin}
       roles: ADMIN
 
-  # 🔗 Подключение к Config Server
-  config:
-    import: "configserver:"
-  cloud:
-    config:
-      uri: http://localhost:8881
-      fail-fast: true
-      retry:
-        initial-interval: 1000
-        max-attempts: 6
-
 logging:
   level:
     org.springframework.security: DEBUG
     com.example.userservice: DEBUG
-    org.springframework.kafka: DEBUG
+    org.springframework.kafka: DEBUG  # отладка Kafka
 
 management:
   server:

@@ -6,7 +6,7 @@ import com.example.userservice.model.User;
 import org.mapstruct.*;
 import org.springframework.stereotype.Component;
 
-@Component
+
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
 
