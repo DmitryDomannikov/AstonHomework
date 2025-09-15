@@ -1,13 +1,14 @@
-FROM maven:3.9.9-eclipse-temurin-21 AS build
-WORKDIR /app
-COPY pom.xml .
-RUN mvn -q -DskipTests dependency:go-offline
-COPY src ./src
-RUN mvn -q -DskipTests package
+# Builder stage: сборка с Maven
+FROM maven:3.9.9-eclipse-temurin-21 AS builder
+WORKDIR /build
+# Копируем весь проект (parent POM и модули)
+COPY . .
+# Сборка только gateway-service + зависимые модули (без тестов)
+RUN mvn -B -DskipTests -pl gateway-service -am package  # Исправлено
 
-FROM eclipse-temurin:21-jre-alpine
+# Runtime stage: JRE для запуска
+FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
-ENV JAVA_OPTS="-Xms256m -Xmx512m"
-EXPOSE 8080
-ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar app.jar"]
+# Копируем собранный JAR (путь от корня build)
+COPY --from=builder /build/gateway-service/target/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

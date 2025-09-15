@@ -1,52 +1,9 @@
-server:
-  port: 8080
-
 spring:
-  main:
-    web-application-type: reactive
   application:
     name: gateway-service
+
   config:
-    import: "optional:configserver:"   # или "configserver:" если нужен жёсткий фейл
-  cloud:
-    config:
-      uri: http://localhost:8888       # в Docker: http://config-service:8888
-      fail-fast: true
-      retry:
-        initial-interval: 1000
-        max-attempts: 6
-    gateway:
-      # Автомаршрутизация по именам сервисов из Eureka:
-      server:
-        webflux:
-          discovery:
-            locator:
-              lower-case-service-id: true
-              enabled: true
+    import: "optional:configserver:http://localhost:8881"
+  main:
+    web-application-type: reactive
 
-eureka:
-  client:
-    fetch-registry: true
-    register-with-eureka: true
-    service-url:
-      defaultZone: http://localhost:8761/eureka   # в Docker: http://discovery-service:8761/eureka
-  instance:
-    prefer-ip-address: true
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,gateway
-  endpoint:
-    health:
-      show-details: always
-
-# Открыть Swagger UI/OpenAPI сквозь Security (если включена защита)
-springdoc:
-  swagger-ui:
-    urls:
-      - name: user-service
-        url: /v3/api-docs/user-service
-      - name: notification-service
-        url: /v3/api-docs/notification-service

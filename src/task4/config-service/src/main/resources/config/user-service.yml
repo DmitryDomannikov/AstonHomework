@@ -5,7 +5,8 @@ server:
 
 spring:
   application:
-    name: user-service   # <<< важно: имя совпадает с файлом и с самим сервисом
+    name: user-service
+
   datasource:
     url: jdbc:postgresql://localhost:5432/hibernate_demo_db
     username: postgres
@@ -75,7 +76,7 @@ logging:
   level:
     org.springframework.security: DEBUG
     com.example.userservice: DEBUG
-    org.springframework.kafka: DEBUG  # отладка Kafka
+    org.springframework.kafka: DEBUG
 
 management:
   server:
