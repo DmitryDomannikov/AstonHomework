@@ -1,6 +1,10 @@
 Microservices Architecture Project
 📋 Overview
-A comprehensive microservices-based system built with Spring Boot 3.5.4 and Spring Cloud 2025.0.0. The project demonstrates modern distributed system patterns including service discovery, API gateway, configuration management, and inter-service communication.
+A comprehensive microservices-based system built with Spring Boot 3.5.4 and Spring Cloud 2025.0.0.
+The project demonstrates modern distributed system patterns including service discovery, 
+API gateway, configuration management, and inter-service communication.
+
+
 ┌─────────────────┐    ┌──────────────────┐    ┌────────────────────┐
 │   API Gateway   │    │  Config Server   │    │  Discovery Server  │
 │   (Gateway)     │◄──►│   (Config)       │◄──►│   (Eureka)         │
@@ -11,6 +15,8 @@ A comprehensive microservices-based system built with Spring Boot 3.5.4 and Spri
 │   User Service    │   │ Notification Srv  │   │   Other Services  │
 │   (Business)      │   │   (Messaging)     │   │                   │
 └───────────────────┘   └───────────────────┘   └───────────────────┘
+
+
 🚀 Services
 1. Discovery Service (Eureka Server)
    Port: 8761
