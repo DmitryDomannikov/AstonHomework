@@ -6,14 +6,14 @@ API gateway, configuration management, and inter-service communication.
 
 
 ┌─────────────────┐    ┌──────────────────┐    ┌────────────────────┐                                              
-│   API Gateway   │    │  Config Server   │    │  Discovery Server  │                                              
-│   (Gateway)     │◄──►│   (Config)       │◄──►│   (Eureka)         │                                    
+│                   API Gateway   │    │  Config Server   │    │  Discovery Server  │                                              
+│                  (Gateway)     │◄──►│   (Config)       │◄──►│   (Eureka)         │                                    
 └─────────────────┘    └──────────────────┘    └────────────────────┘                                     
-▲                       ▲                       ▲                                                          
-│                       │                       │                                                                                                                           
+           ▲                       ▲                       ▲                                                          
+           │                       │                       │                                                                                                                           
 ┌─────────┴─────────┐   ┌─────────┴─────────┐   ┌─────────┴─────────┐                                       
-│   User Service    │   │ Notification Srv  │   │   Other Services  │                                           
-│   (Business)      │   │   (Messaging)     │   │                   │                                              
+│               User Service    │   │ Notification Srv  │   │   Other Services  │                                           
+│               (Business)      │   │   (Messaging)     │   │                   │                                              
 └───────────────────┘   └───────────────────┘   └───────────────────┘                                        
 
 
