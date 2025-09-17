@@ -1,52 +1,65 @@
+
+server:
+  port: 0 # тесты не должны занимать фиксированный порт
+
 spring:
+  application:
+    name: user-service-test
+
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/testdb
-    username: ${POSTGRES_USER:testuser}
-    password: ${POSTGRES_PASSWORD:testpass}
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 5
-      leak-detection-threshold: 2000 # Детектор утечек соединений (мс)
+    url: jdbc:tc:postgresql:16-alpine:///testdb   # Testcontainers JDBC URL
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    username: test
+    password: test
 
   jpa:
     hibernate:
       ddl-auto: create-drop
-    show-sql: true
     properties:
       hibernate:
-        format_sql: true # Форматирование SQL в логах
-        jdbc.batch_size: 20
-        generate_statistics: true # Для анализа производительности
+        format_sql: true
+    show-sql: false
 
-  cache:
-    type: none
+  kafka:
+    bootstrap-servers: dummy:9092  # отключаем реальный брокер
+    consumer:
+      enabled: false
+    producer:
+      enabled: false
 
-  flyway:
-    enabled: false
+  mail:
+    host: localhost
+    port: 2525
+    username: test
+    password: test
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
 
-  main:
-    banner-mode: "off" # Отключаем баннер Spring Boot
+  cloud:
+    config:
+      enabled: false   # отключаем Config Server
+    discovery:
+      enabled: false   # отключаем Eureka для тестов
 
-server:
-  port: 0
-
-# Настройки логирования
 logging:
   level:
     org:
       springframework:
         context: DEBUG
         orm:
-          jpa: DEBUG # Логирование JPA
-        transaction: DEBUG # Логирование транзакций
+          jpa: DEBUG
+        transaction: DEBUG
       hibernate:
-        SQL: DEBUG # Детальные SQL-логи
-        type.descriptor.sql.BasicBinder: TRACE # Параметры SQL-запросов
-    mapstruct: TRACE # Логирование MapStruct
+        SQL: DEBUG
+        type.descriptor.sql.BasicBinder: TRACE
+    mapstruct: TRACE
 
   pattern:
-    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" # Формат логов
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
-# Настройки Testcontainers (если используется)
 testcontainers:
-  reuse: true # Включение reuse-режима для контейнеров
+  reuse: true

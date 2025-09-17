@@ -2,6 +2,8 @@ server:
   port: 8080
 
 spring:
+  main:
+    web-application-type: reactive
   cloud:
     gateway:
       routes:
@@ -17,6 +19,8 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
+    compatibility-verifier:
+        enabled: false
 
 eureka:
   client:

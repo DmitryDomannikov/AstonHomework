@@ -4,13 +4,24 @@ A comprehensive microservices-based system built with Spring Boot 3.5.4 and Spri
 The project demonstrates modern distributed system patterns including service discovery, 
 API gateway, configuration management, and inter-service communication.
 
-[ User Service ] ---> Kafka ---> [ Notification Service ] ---> SMTP (Email)
-| ^
-v |
-[ Gateway Service ] <--> [ Eureka Discovery ]
-|
-v
-[ Config Service ] ---> централизованная конфигурация (YAML)                       
+       ┌───────────────┐
+       │  API Gateway  │
+       │     :8080     │
+       └───────────────┘
+               │
+    ┌──────────┼──────────┐
+    ▼          ▼          ▼
+┌───────┐  ┌───────┐  ┌───────┐
+│ User  │  │ Notif │  │ Config│
+│ :8082 │  │ :8081 │  │ :8881 │
+└───────┘  └───────┘  └───────┘
+│          │
+└─────┬────┘
+▼
+┌───────────┐
+│ Discovery │
+│  :8761    │
+└───────────┘                   
 
 
 🚀 Services

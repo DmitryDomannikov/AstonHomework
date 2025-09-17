@@ -32,13 +32,15 @@ spring:
         spring:
           json:
             trusted:
-              packages: "com.example.notificationservice.dto"
+              packages: "com.example.notification-service.dto"
         auto:
           offset:
             reset: earliest
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  compatibility-verifier:
+        enabled: false
 
 eureka:
   client:
